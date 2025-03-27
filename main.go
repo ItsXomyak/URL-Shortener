@@ -14,8 +14,7 @@ func main() {
 
 	err = storage.MigrateDB()
 	if err != nil {
-		log.Fatalf("Ошибка миграции БД: %v", err)
-	}
-
+    log.Fatalf("Ошибка миграции БД: %v", err)
+  }
 	log.Println("Сервис запущен")
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"url-shortener/internal/handler"
 	"url-shortener/internal/storage"
 )
 

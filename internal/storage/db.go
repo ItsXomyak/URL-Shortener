@@ -68,3 +68,35 @@ func MigrateDB() error {
 	log.Println("Таблица 'urls' успешно проверена/создана")
 	return nil
 }
+
+func GetOriginalURL(shortURL string) (string, error) {
+	var originalURL string
+	err := db.QueryRow("SELECT original_url FROM urls WHERE short_url = $1", shortURL).Scan(&originalURL)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("URL не найден")
+		}
+		return "", fmt.Errorf("ошибка поиска URL: %w", err)
+	}
+
+	_, _ = db.Exec("UPDATE urls SET clicks = clicks + 1 WHERE short_url = $1", shortURL)
+
+	return originalURL, nil
+}
+
+func GetStats(shortURL string) (int, error) {
+	var clicks int
+	err := db.QueryRow("SELECT clicks FROM urls WHERE short_url = $1", shortURL).Scan(&clicks)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("URL не найден")
+		}
+		return 0, fmt.Errorf("ошибка получения статистики: %w", err)
+	}
+
+	return clicks, nil
+}
+
+func generateShortURL(originalURL string) string {
+	return fmt.Sprintf("%x", len(originalURL))
+}
