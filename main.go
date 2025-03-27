@@ -1,18 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
-	"url-shortener/internal/config"
+	"url-shortener/internal/storage"
 )
 
 func main() {
-	cfg := config.Load()
+	err := storage.InitDB()
+	if err != nil {
+		log.Fatalf("Ошибка подключения к БД: %v", err)
+	}
 
-	log.Printf(" Server running on port %s\n", cfg.ServerPort)
-	log.Printf(" Connected to PostgreSQL: %s\n", cfg.PostgresDSN)
-	log.Printf(" Connected to Redis: %s\n", cfg.RedisAddr)
+	err = storage.MigrateDB()
+	if err != nil {
+		log.Fatalf("Ошибка миграции БД: %v", err)
+	}
 
-	fmt.Println("Configuration loaded successfully")
+	log.Println("Сервис запущен")
 }
