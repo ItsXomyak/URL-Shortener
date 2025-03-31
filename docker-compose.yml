@@ -24,6 +24,24 @@ services:
     volumes:
       - redis_data:/data
 
+  app:
+    build: .
+    container_name: url_shortener
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: url_shortener
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - '8080:8080'
+
 volumes:
   pg_data:
   redis_data:

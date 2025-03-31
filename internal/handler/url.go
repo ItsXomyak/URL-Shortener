@@ -47,14 +47,24 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortURL := vars["short_url"]
 
+	// Получаем оригинальный URL из базы данных
 	originalURL, err := storage.GetOriginalURL(shortURL)
 	if err != nil {
 		http.Error(w, "URL не найден", http.StatusNotFound)
 		return
 	}
 
+	// Увеличиваем количество кликов
+	err = storage.IncrementClickCount(shortURL)
+	if err != nil {
+		http.Error(w, "Ошибка при увеличении счетчика кликов", http.StatusInternalServerError)
+		return
+	}
+
+	// Перенаправляем на оригинальный URL
 	http.Redirect(w, r, originalURL, http.StatusFound)
 }
+
 
 func StatsURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

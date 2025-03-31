@@ -1,0 +1,93 @@
+1. Создание сокращённого URL
+Запрос для сокращения URL:
+
+bash
+
+curl -X POST http://localhost:8080/shorten \
+-H "Content-Type: application/json" \
+-d '{"url": "https://www.example.com"}'
+Описание:
+
+url: передает длинный URL, который вы хотите сократить.
+
+Пример ответа:
+
+json
+
+{
+  "short_url": "EAaArVRs"
+}
+2. Перенаправление на оригинальный URL
+Запрос для перенаправления на оригинальный URL по сокращённому URL:
+
+bash
+
+curl -L http://localhost:8080/EAaArVRs
+Описание:
+
+Этот запрос перенаправит на оригинальный URL, соответствующий сокращённому URL EAaArVRs.
+
+Пример ответа:
+
+Ваша браузерная сессия будет перенаправлена на https://www.example.com.
+
+3. Получение статистики по сокращённому URL
+Запрос для получения статистики (количество кликов) для сокращённого URL:
+
+bash
+
+curl http://localhost:8080/stats/EAaArVRs
+Описание:
+
+Запрос возвращает количество кликов по сокращённому URL EAaArVRs.
+
+Пример ответа:
+
+json
+
+{
+  "clicks": 5
+}
+4. Проверка ошибки для несуществующего URL
+Если вы попытаетесь запросить статистику для несуществующего сокращённого URL, вы получите ошибку:
+
+bash
+
+curl http://localhost:8080/stats/NonExistentURL
+Пример ответа:
+
+json
+
+{
+  "error": "URL не найден"
+}
+5. Проверка ошибки для некорректного JSON в теле запроса
+Если вы отправите некорректный JSON, например:
+
+bash
+
+curl -X POST http://localhost:8080/shorten \
+-H "Content-Type: application/json" \
+-d '{"url": "https://www.example.com"'
+Пример ответа:
+
+json
+
+{
+  "error": "Некорректный JSON"
+}
+6. Проверка ошибки для пустого URL
+Если вы отправите запрос с пустым URL:
+
+bash
+
+curl -X POST http://localhost:8080/shorten \
+-H "Content-Type: application/json" \
+-d '{"url": ""}'
+Пример ответа:
+
+json
+
+{
+  "error": "URL не может быть пустым"
+}

@@ -56,10 +56,10 @@ func MigrateDB() error {
 		id SERIAL PRIMARY KEY,
 		short_url TEXT UNIQUE NOT NULL,
 		long_url TEXT NOT NULL,
+		clicks INT DEFAULT 0,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
 	`
-
 	_, err := db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("Ошибка при создании таблицы: %v", err)
@@ -69,9 +69,20 @@ func MigrateDB() error {
 	return nil
 }
 
+func IncrementClickCount(shortURL string) error {
+	// Выполняем запрос для увеличения счетчика кликов
+	_, err := db.Exec("UPDATE urls SET clicks = clicks + 1 WHERE short_url = $1", shortURL)
+	if err != nil {
+		log.Println("Ошибка при увеличении счетчика кликов:", err)
+		return err
+	}
+	return nil
+}
+
+
 func GetOriginalURL(shortURL string) (string, error) {
 	var originalURL string
-	err := db.QueryRow("SELECT original_url FROM urls WHERE short_url = $1", shortURL).Scan(&originalURL)
+	err := db.QueryRow("SELECT long_url FROM urls WHERE short_url = $1", shortURL).Scan(&originalURL)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("URL не найден")
@@ -84,16 +95,22 @@ func GetOriginalURL(shortURL string) (string, error) {
 	return originalURL, nil
 }
 
+func SaveURL(shortURL, longURL string) error {
+	_, err := db.Exec(
+		"INSERT INTO urls (short_url, long_url) VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING",
+		shortURL, longURL,
+	)
+	return err
+}
+
+
 func GetStats(shortURL string) (int, error) {
 	var clicks int
 	err := db.QueryRow("SELECT clicks FROM urls WHERE short_url = $1", shortURL).Scan(&clicks)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("URL не найден")
-		}
-		return 0, fmt.Errorf("ошибка получения статистики: %w", err)
+		log.Println("Ошибка при получении статистики:", err)
+		return 0, err
 	}
-
 	return clicks, nil
 }
 
